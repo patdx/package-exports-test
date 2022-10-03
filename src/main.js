@@ -1,3 +1,3 @@
-import x from "exports-browser-browser";
+import x from 'exports-browser-browser';
 
 console.log(x);
