@@ -5,14 +5,14 @@ This tests how different bundlers handle the package.json:
 ```json
 {
   "type": "module",
-  "main": "legacy.js",
-  "module": "legacy.js",
+  "main": "main.js",
+  "module": "module.js",
   "browser": {
-    "./index.js": "./browser-override.js"
+    "./browser.js": "./browser-override.js"
   },
   "exports": {
     ".": {
-      "browser": "./index.js",
+      "browser": "./browser.js",
       "require": "./require.js"
     }
   }
@@ -23,4 +23,4 @@ This tests how different bundlers handle the package.json:
 
 | esbuild  | rollup              | vite                | webpack             |
 | -------- | ------------------- | ------------------- | ------------------- |
-| index.js | browser-override.js | browser-override.js | browser-override.js |
+| browser.js | browser-override.js | browser-override.js | browser-override.js |

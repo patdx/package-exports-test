@@ -8,7 +8,7 @@ import { resolve } from 'path';
 import * as vite from 'vite';
 
 const bundle = await rollup({
-  input: './src/main.js',
+  input: ['./src/simple.js', './src/solid.js'],
   plugins: [
     nodeResolve({
       preferBuiltins: true,
@@ -27,20 +27,25 @@ await bundle.close();
 // esbuild
 
 await esbuild.build({
-  entryPoints: ['./src/main.js'],
+  entryPoints: ['./src/simple.js', './src/solid.js'],
   bundle: true,
   outdir: './out/esbuild',
   format: 'esm',
   conditions: ['worker', 'browser'],
+  platform: 'browser',
 });
 
 // webpack
 
 const compiler = webpack({
   target: 'web',
-  entry: './src/main.js',
+  entry: { simple: './src/simple.js', solid: './src/solid.js' },
   output: {
     path: resolve('./out/webpack'),
+    filename: '[name].js',
+  },
+  optimization: {
+    minimize: false,
   },
 });
 
@@ -53,7 +58,7 @@ await vite.build({
   build: {
     ssr: true,
     rollupOptions: {
-      input: './src/main.js',
+      input: ['./src/simple.js', './src/solid.js'],
       output: {
         dir: './out/vite',
       },

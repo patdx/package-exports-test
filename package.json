@@ -18,5 +18,8 @@
     "rollup": "^2.79.1",
     "vite": "^3.1.4",
     "webpack": "^5.74.0"
+  },
+  "dependencies": {
+    "solid-js": "^1.5.7"
   }
 }
