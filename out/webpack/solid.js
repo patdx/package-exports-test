@@ -35,7 +35,7 @@
 /************************************************************************/
 var __webpack_exports__ = {};
 
-// NAMESPACE OBJECT: ./node_modules/.pnpm/solid-js@1.5.7/node_modules/solid-js/dist/solid.js
+// NAMESPACE OBJECT: ./node_modules/.pnpm/solid-js@1.5.9/node_modules/solid-js/dist/solid.js
 var solid_namespaceObject = {};
 __webpack_require__.r(solid_namespaceObject);
 __webpack_require__.d(solid_namespaceObject, {
@@ -94,7 +94,7 @@ __webpack_require__.d(solid_namespaceObject, {
   "useTransition": () => (useTransition)
 });
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/solid-js@1.5.7/node_modules/solid-js/dist/solid.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/solid-js@1.5.9/node_modules/solid-js/dist/solid.js
 let taskIdCounter = 1,
     isCallbackScheduled = false,
     isPerformingWork = false,
@@ -396,7 +396,7 @@ function createResource(pSource, pFetcher, pOptions) {
       createComputed(() => {
         track();
         if (pr) {
-          if (c.resolved && Transition && Transition.running) Transition.promises.add(pr);else if (!contexts.has(c)) {
+          if (c.resolved && Transition && loadedUnderTransition) Transition.promises.add(pr);else if (!contexts.has(c)) {
             c.increment();
             contexts.add(c);
           }
@@ -714,7 +714,9 @@ function updateComputation(node) {
     queueMicrotask(() => {
       runUpdates(() => {
         Transition && (Transition.running = true);
+        Listener = Owner = node;
         runComputation(node, node.tValue, time);
+        Listener = Owner = null;
       }, false);
     });
   }

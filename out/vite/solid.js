@@ -297,7 +297,7 @@ function createResource(pSource, pFetcher, pOptions) {
       createComputed(() => {
         track();
         if (pr) {
-          if (c.resolved && Transition && Transition.running)
+          if (c.resolved && Transition && loadedUnderTransition)
             Transition.promises.add(pr);
           else if (!contexts.has(c)) {
             c.increment();
@@ -657,7 +657,9 @@ function updateComputation(node) {
     queueMicrotask(() => {
       runUpdates(() => {
         Transition && (Transition.running = true);
+        Listener = Owner = node;
         runComputation(node, node.tValue, time);
+        Listener = Owner = null;
       }, false);
     });
   }
