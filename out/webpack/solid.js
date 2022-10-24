@@ -35,7 +35,7 @@
 /************************************************************************/
 var __webpack_exports__ = {};
 
-// NAMESPACE OBJECT: ./node_modules/.pnpm/solid-js@1.5.9/node_modules/solid-js/dist/solid.js
+// NAMESPACE OBJECT: ./node_modules/.pnpm/solid-js@1.6.0/node_modules/solid-js/dist/solid.js
 var solid_namespaceObject = {};
 __webpack_require__.r(solid_namespaceObject);
 __webpack_require__.d(solid_namespaceObject, {
@@ -94,7 +94,7 @@ __webpack_require__.d(solid_namespaceObject, {
   "useTransition": () => (useTransition)
 });
 
-;// CONCATENATED MODULE: ./node_modules/.pnpm/solid-js@1.5.9/node_modules/solid-js/dist/solid.js
+;// CONCATENATED MODULE: ./node_modules/.pnpm/solid-js@1.6.0/node_modules/solid-js/dist/solid.js
 let taskIdCounter = 1,
     isCallbackScheduled = false,
     isPerformingWork = false,
@@ -596,7 +596,7 @@ function resumeEffects(e) {
   Effects.push.apply(Effects, e);
   e.length = 0;
 }
-function createContext(defaultValue) {
+function createContext(defaultValue, options) {
   const id = Symbol("context");
   return {
     id,
@@ -992,7 +992,7 @@ function resolveChildren(children) {
   }
   return children;
 }
-function createProvider(id) {
+function createProvider(id, options) {
   return function provider(props) {
     let res;
     createRenderEffect(() => res = untrack(() => {
@@ -1000,7 +1000,7 @@ function createProvider(id) {
         [id]: props.value
       };
       return children(() => props.children);
-    }));
+    }), undefined);
     return res;
   };
 }
@@ -1266,29 +1266,41 @@ function resolveSource(s) {
   return (s = typeof s === "function" ? s() : s) == null ? {} : s;
 }
 function mergeProps(...sources) {
-  return new Proxy({
-    get(property) {
-      for (let i = sources.length - 1; i >= 0; i--) {
-        const v = resolveSource(sources[i])[property];
-        if (v !== undefined) return v;
+  if (sources.some(s => s && ($PROXY in s || typeof s === "function"))) {
+    return new Proxy({
+      get(property) {
+        for (let i = sources.length - 1; i >= 0; i--) {
+          const v = resolveSource(sources[i])[property];
+          if (v !== undefined) return v;
+        }
+      },
+      has(property) {
+        for (let i = sources.length - 1; i >= 0; i--) {
+          if (property in resolveSource(sources[i])) return true;
+        }
+        return false;
+      },
+      keys() {
+        const keys = [];
+        for (let i = 0; i < sources.length; i++) keys.push(...Object.keys(resolveSource(sources[i])));
+        return [...new Set(keys)];
       }
-    },
-    has(property) {
-      for (let i = sources.length - 1; i >= 0; i--) {
-        if (property in resolveSource(sources[i])) return true;
-      }
-      return false;
-    },
-    keys() {
-      const keys = [];
-      for (let i = 0; i < sources.length; i++) keys.push(...Object.keys(resolveSource(sources[i])));
-      return [...new Set(keys)];
+    }, propTraps);
+  }
+  const target = {};
+  for (let i = 0; i < sources.length; i++) {
+    if (sources[i]) {
+      const descriptors = Object.getOwnPropertyDescriptors(sources[i]);
+      Object.defineProperties(target, descriptors);
     }
-  }, propTraps);
+  }
+  return target;
 }
 function splitProps(props, ...keys) {
   const blocked = new Set(keys.flat());
   const descriptors = Object.getOwnPropertyDescriptors(props);
+  const isProxy = ($PROXY in props);
+  if (!isProxy) keys.push(Object.keys(descriptors).filter(k => !blocked.has(k)));
   const res = keys.map(k => {
     const clone = {};
     for (let i = 0; i < k.length; i++) {
@@ -1304,17 +1316,19 @@ function splitProps(props, ...keys) {
     }
     return clone;
   });
-  res.push(new Proxy({
-    get(property) {
-      return blocked.has(property) ? undefined : props[property];
-    },
-    has(property) {
-      return blocked.has(property) ? false : property in props;
-    },
-    keys() {
-      return Object.keys(props).filter(k => !blocked.has(k));
-    }
-  }, propTraps));
+  if (isProxy) {
+    res.push(new Proxy({
+      get(property) {
+        return blocked.has(property) ? undefined : props[property];
+      },
+      has(property) {
+        return blocked.has(property) ? false : property in props;
+      },
+      keys() {
+        return Object.keys(props).filter(k => !blocked.has(k));
+      }
+    }, propTraps));
+  }
   return res;
 }
 function lazy(fn) {
